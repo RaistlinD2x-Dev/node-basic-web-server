@@ -1,45 +1,61 @@
 const fs = require('fs');
 const http = require('http');
-const url = require('url');
+const { URL } = require('url');
 const path = require('path');
 
 // replace template functions
 const replaceTemplate = (temp, product) => {
-    let output = temp.replace(/{%PRODUCTNAME%}/g, product.productName);
-    ouput = output.replace(/{%IMAGE%}/g, product.image);
-    ouput = output.replace(/{%FROM%}/g, product.from);
-    ouput = output.replace(/{%NUTRIENTS%}/g, product.nutrients);
-    ouput = output.replace(/{%QUANTITY%}/g, product.quantity);
-    ouput = output.replace(/{%DESCRIPTION%}/g, product.description);
-    ouput = output.replace(/{%ID%}/g, product.id);
-    ouput = output.replace(/{%PRICE%}/g, product.price);
-    
-    if(!product.organic) output = output.replace(/{%NOT_ORGANIC%}/g, 'not-organic')
+    let output = temp.replace(/{%QUANTITY%}/g, product.quantity);
+    output = output.replace(/{%IMAGE%}/g, product.image)
+    output = output.replace(/{%FROM%}/g, product.from)
+    output = output.replace(/{%NUTRIENTS%}/g, product.nutrients)
+    output = output.replace(/{%PRODUCTNAME%}/g, product.productName)
+    output = output.replace(/{%DESCRIPTION%}/g, product.description)
+    output = output.replace(/{%ID%}/g, product.id)
+    output = output.replace(/{%PRICE%}/g, product.price)
+    if(!product.organic) {
+        output = output.replace(/{%NOT_ORGANIC%}/g, 'not-organic')
+    }
 
     return output
 }
 
 // moved to top level so it is executed once, changed from async to sync
-const templateOverview = fs.readFileSync(`./templates/template-overview.html`, 'utf-8')
-const templateCard = fs.readFileSync(`./templates/template-card.html`, 'utf-8')
-const templateProduct = fs.readFileSync(`./templates/template-product.html`, 'utf-8')
+const templateOverview = fs.readFileSync(`${__dirname}/templates/template-overview.html`, 'utf-8')
+const templateCard = fs.readFileSync(`${__dirname}/templates/template-card.html`, 'utf-8')
+const templateProduct = fs.readFileSync(`${__dirname}/templates/template-product.html`, 'utf-8')
 
-const data = fs.readFileSync(`./dev-data/data.json`, 'utf-8')
+const data = fs.readFileSync(`${__dirname}/dev-data/data.json`, 'utf-8')
 const dataObj = JSON.parse(data);
-console.log(dataObj)
+// console.log(dataObj)
 
 
 
 // creates server and assigns it to server variable
 const server = http.createServer((req, res) => {
     // req.url is just the appended route
-    const pathName = req.url
+    // url.parse deprecated, create URL object with route + host ip
+    // returns full URL which can then be parsed with .searchParams.get()
+    const baseUrl = `http://${req.url.host}`
+    const pathName = new URL(req.url, "http://localhost")
+    const query = pathName.searchParams.get('id')
+    const pathname = pathName.pathname
+
+
+
+    // console.log(baseUrl + ' baseURL')
+    // console.log(req.url + ' req.url')
+    // console.log(pathName + ' pathName')
+    // console.log(pathName.pathname)
+    // console.log(query)
+
 
     // basic routing for root and overview routes
     if(pathName === '/' || pathName === '/overview') {
         res.writeHead(200, { 'Content-Type': 'text/html' })
 
         const cardsHtml = dataObj.map(el => replaceTemplate(templateCard, el)).join('')
+        // console.log(cardsHtml)
         const output = templateOverview.replace('{%PRODUCT_CARDS%}', cardsHtml)
 
         res.end(output)
