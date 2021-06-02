@@ -51,7 +51,7 @@ const server = http.createServer((req, res) => {
 
 
     // basic routing for root and overview routes
-    if(pathName === '/' || pathName === '/overview') {
+    if(pathname === '/' || pathname === '/overview') {
         res.writeHead(200, { 'Content-Type': 'text/html' })
 
         const cardsHtml = dataObj.map(el => replaceTemplate(templateCard, el)).join('')
@@ -61,11 +61,15 @@ const server = http.createServer((req, res) => {
         res.end(output)
 
     // product page
-    } else if (pathName === '/product'){
-        res.end('this is the product')
+    } else if (pathname === '/product'){
+        res.writeHead(200, { 'Content-Type': 'text/html' })
+        const product = dataObj[query]
+        const output = replaceTemplate(templateProduct, product)
+
+        res.end(output)
 
     // API
-    } else if (pathName === '/api') {
+    } else if (pathname === '/api') {
         res.writeHead(200, { 'Content-Type': 'application/json' })
         res.end(data)
 
