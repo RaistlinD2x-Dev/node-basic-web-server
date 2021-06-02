@@ -1,10 +1,34 @@
 const fs = require('fs');
 const http = require('http');
 const url = require('url');
+const path = require('path');
+
+// replace template functions
+const replaceTemplate = (temp, product) => {
+    let output = temp.replace(/{%PRODUCTNAME%}/g, product.productName);
+    ouput = output.replace(/{%IMAGE%}/g, product.image);
+    ouput = output.replace(/{%FROM%}/g, product.from);
+    ouput = output.replace(/{%NUTRIENTS%}/g, product.nutrients);
+    ouput = output.replace(/{%QUANTITY%}/g, product.quantity);
+    ouput = output.replace(/{%DESCRIPTION%}/g, product.description);
+    ouput = output.replace(/{%ID%}/g, product.id);
+    ouput = output.replace(/{%PRICE%}/g, product.price);
+    
+    if(!product.organic) output = output.replace(/{%NOT_ORGANIC%}/g, 'not-organic')
+
+    return output
+}
 
 // moved to top level so it is executed once, changed from async to sync
-const data = fs.readFileSync(`${__dirname}/dev-data/data.json`, 'utf-8')
+const templateOverview = fs.readFileSync(`./templates/template-overview.html`, 'utf-8')
+const templateCard = fs.readFileSync(`./templates/template-card.html`, 'utf-8')
+const templateProduct = fs.readFileSync(`./templates/template-product.html`, 'utf-8')
+
+const data = fs.readFileSync(`./dev-data/data.json`, 'utf-8')
 const dataObj = JSON.parse(data);
+console.log(dataObj)
+
+
 
 // creates server and assigns it to server variable
 const server = http.createServer((req, res) => {
@@ -13,18 +37,29 @@ const server = http.createServer((req, res) => {
 
     // basic routing for root and overview routes
     if(pathName === '/' || pathName === '/overview') {
-        res.end('This is the overview page')
+        res.writeHead(200, { 'Content-Type': 'text/html' })
+
+        const cardsHtml = dataObj.map(el => replaceTemplate(templateCard, el)).join('')
+        const output = templateOverview.replace('{%PRODUCT_CARDS%}', cardsHtml)
+
+        res.end(output)
+
+    // product page
     } else if (pathName === '/product'){
         res.end('this is the product')
+
+    // API
     } else if (pathName === '/api') {
         res.writeHead(200, { 'Content-Type': 'application/json' })
         res.end(data)
+
     } else {
         // error handling with 404 and error handling with custom header
         res.writeHead(404, { 
             'Content-type': 'text/html',
             'my-own-header': 'hello-world'
         })
+
         // closing response
         res.end('<h1>404 page not found</h1>')
     }
