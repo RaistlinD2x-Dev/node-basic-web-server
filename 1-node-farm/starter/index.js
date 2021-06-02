@@ -1,10 +1,33 @@
 const fs = require('fs');
 const http = require('http');
+const url = require('url');
 
+// creates server and assigns it to server variable
 const server = http.createServer((req, res) => {
-    res.end('Hello from the server')
+    // req.url is just the appended route
+    const pathName = req.url
+
+    // basic routing for root and overview routes
+    if(pathName === '/' || pathName === '/overview') {
+        res.end('This is the overview page')
+    } else if (pathName === '/product'){
+        res.end('this is the product')
+    } else {
+        // error handling with 404 and error handling with custom header
+        res.writeHead(404, { 
+            'Content-type': 'text/html',
+            'my-own-header': 'hello-world'
+        })
+        // closing response
+        res.end('<h1>404 page not found</h1>')
+    }
+
+    // console.log(req.url)
+    // res.end('Hello from the server')
 })
 
+
+// creates listen event for server on 8000 with localhost and callback
 server.listen(8000, '127.0.0.1', () => {
     console.log('Server is listening on port 8000')
 })
