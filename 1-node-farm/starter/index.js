@@ -1,12 +1,11 @@
-// import { replaceTemplate } from './modules/replaceTemplate'
+// custom module
 const { replaceTemplate } = require('./modules/replaceTemplate')
 
 const fs = require('fs');
 const http = require('http');
 const { URL } = require('url');
 
-// custom module
-// const replaceTemplate = require('./modules/replaceTemplate.js')
+// const replaceTemplate = require('./modules/replaceTemplate')
 
 
 // moved to top level so it is executed once, changed from async to sync
