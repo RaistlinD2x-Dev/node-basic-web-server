@@ -12,6 +12,14 @@ const server = http.createServer((req, res) => {
         res.end('This is the overview page')
     } else if (pathName === '/product'){
         res.end('this is the product')
+    } else if (pathName === '/api') {
+
+        fs.readFile(`${__dirname}/dev-data/data.json`, 'utf-8', (err, data) => {
+            const productData = JSON.parse(data);
+            res.writeHead(200, { 'Content-Type': 'application/json' })
+            res.end(data)
+            // console.log(productData)
+        })
     } else {
         // error handling with 404 and error handling with custom header
         res.writeHead(404, { 
