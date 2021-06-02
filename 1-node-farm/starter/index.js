@@ -18,9 +18,11 @@ const data = fs.readFileSync(`${__dirname}/dev-data/data.json`, 'utf-8')
 const dataObj = JSON.parse(data);
 // console.log(dataObj)
 
+// slugified the productName on the dataObj
 const slugs = dataObj.map(el => slugify(el.productName, { lower: true}))
 console.log(slugs)
 
+// initial slugify test
 console.log(slugify('Fresh Avocados', {
     lower: true
 }))
