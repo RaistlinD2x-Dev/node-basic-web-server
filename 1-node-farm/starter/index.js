@@ -1,105 +1,101 @@
 // custom module
-const { replaceTemplate } = require('./modules/replaceTemplate')
+const { replaceTemplate } = require('./modules/replaceTemplate');
 
 const fs = require('fs');
 const http = require('http');
 const { URL } = require('url');
-const slugify = require('slugify')
+const slugify = require('slugify');
 
 // const replaceTemplate = require('./modules/replaceTemplate')
 
-
 // moved to top level so it is executed once, changed from async to sync
-const templateOverview = fs.readFileSync(`${__dirname}/templates/template-overview.html`, 'utf-8')
-const templateCard = fs.readFileSync(`${__dirname}/templates/template-card.html`, 'utf-8')
-const templateProduct = fs.readFileSync(`${__dirname}/templates/template-product.html`, 'utf-8')
+const templateOverview = fs.readFileSync(
+  `${__dirname}/templates/template-overview.html`,
+  'utf-8'
+);
+const templateCard = fs.readFileSync(
+  `${__dirname}/templates/template-card.html`,
+  'utf-8'
+);
+const templateProduct = fs.readFileSync(
+  `${__dirname}/templates/template-product.html`,
+  'utf-8'
+);
 
-const data = fs.readFileSync(`${__dirname}/dev-data/data.json`, 'utf-8')
+const data = fs.readFileSync(`${__dirname}/dev-data/data.json`, 'utf-8');
 const dataObj = JSON.parse(data);
 // console.log(dataObj)
 
 // slugified the productName on the dataObj
-const slugs = dataObj.map(el => slugify(el.productName, { lower: true}))
-console.log(slugs)
+const slugs = dataObj.map((el) => slugify(el.productName, { lower: true }));
+console.log(slugs);
 
 // initial slugify test
-console.log(slugify('Fresh Avocados', {
-    lower: true
-}))
+console.log(
+  slugify('Fresh Avocados', {
+    lower: true,
+  })
+);
 
 // creates server and assigns it to server variable
 const server = http.createServer((req, res) => {
-    // req.url is just the appended route
-    // url.parse deprecated, create URL object with route + host ip
-    // returns full URL which can then be parsed with .searchParams.get()
-    const baseUrl = `http://${req.url.host}`
-    const pathName = new URL(req.url, "http://localhost")
-    const query = pathName.searchParams.get('id')
-    const pathname = pathName.pathname
+  // req.url is just the appended route
+  // url.parse deprecated, create URL object with route + host ip
+  // returns full URL which can then be parsed with .searchParams.get()
+  const baseUrl = `http://${req.url.host}`;
+  const pathName = new URL(req.url, 'http://localhost');
+  const query = pathName.searchParams.get('id');
+  const pathname = pathName.pathname;
 
+  // console.log(baseUrl + ' baseURL')
+  // console.log(req.url + ' req.url')
+  // console.log(pathName + ' pathName')
+  // console.log(pathName.pathname)
+  // console.log(query)
 
+  // basic routing for root and overview routes
+  if (pathname === '/' || pathname === '/overview') {
+    res.writeHead(200, { 'Content-Type': 'text/html' });
 
-    // console.log(baseUrl + ' baseURL')
-    // console.log(req.url + ' req.url')
-    // console.log(pathName + ' pathName')
-    // console.log(pathName.pathname)
-    // console.log(query)
+    const cardsHtml = dataObj
+      .map((el) => replaceTemplate(templateCard, el))
+      .join('');
+    // console.log(cardsHtml)
+    const output = templateOverview.replace('{%PRODUCT_CARDS%}', cardsHtml);
 
-
-    // basic routing for root and overview routes
-    if(pathname === '/' || pathname === '/overview') {
-        res.writeHead(200, { 'Content-Type': 'text/html' })
-
-        const cardsHtml = dataObj.map(el => replaceTemplate(templateCard, el)).join('')
-        // console.log(cardsHtml)
-        const output = templateOverview.replace('{%PRODUCT_CARDS%}', cardsHtml)
-
-        res.end(output)
+    res.end(output);
 
     // product page
-    } else if (pathname === '/product'){
-        res.writeHead(200, { 'Content-Type': 'text/html' })
-        const product = dataObj[query]
-        const output = replaceTemplate(templateProduct, product)
+  } else if (pathname === '/product') {
+    res.writeHead(200, { 'Content-Type': 'text/html' });
+    const product = dataObj[query];
+    const output = replaceTemplate(templateProduct, product);
 
-        res.end(output)
+    res.end(output);
 
     // API
-    } else if (pathname === '/api') {
-        res.writeHead(200, { 'Content-Type': 'application/json' })
-        res.end(data)
+  } else if (pathname === '/api') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(data);
+  } else {
+    // error handling with 404 and error handling with custom header
+    res.writeHead(404, {
+      'Content-type': 'text/html',
+      'my-own-header': 'hello-world',
+    });
 
-    } else {
-        // error handling with 404 and error handling with custom header
-        res.writeHead(404, { 
-            'Content-type': 'text/html',
-            'my-own-header': 'hello-world'
-        })
+    // closing response
+    res.end('<h1>404 page not found</h1>');
+  }
 
-        // closing response
-        res.end('<h1>404 page not found</h1>')
-    }
-
-    // console.log(req.url)
-    // res.end('Hello from the server')
-})
-
+  // console.log(req.url)
+  // res.end('Hello from the server')
+});
 
 // creates listen event for server on 8000 with localhost and callback
 server.listen(8000, '127.0.0.1', () => {
-    console.log('Server is listening on port 8000')
-})
-
-
-
-
-
-
-
-
-
-
-
+  console.log('Server is listening on port 8000');
+});
 
 /* ---------------------------------------------- File System -------------------------------------------------------*/
 
