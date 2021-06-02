@@ -2,6 +2,10 @@ const fs = require('fs');
 const http = require('http');
 const url = require('url');
 
+// moved to top level so it is executed once, changed from async to sync
+const data = fs.readFileSync(`${__dirname}/dev-data/data.json`, 'utf-8')
+const dataObj = JSON.parse(data);
+
 // creates server and assigns it to server variable
 const server = http.createServer((req, res) => {
     // req.url is just the appended route
@@ -13,13 +17,8 @@ const server = http.createServer((req, res) => {
     } else if (pathName === '/product'){
         res.end('this is the product')
     } else if (pathName === '/api') {
-
-        fs.readFile(`${__dirname}/dev-data/data.json`, 'utf-8', (err, data) => {
-            const productData = JSON.parse(data);
-            res.writeHead(200, { 'Content-Type': 'application/json' })
-            res.end(data)
-            // console.log(productData)
-        })
+        res.writeHead(200, { 'Content-Type': 'application/json' })
+        res.end(data)
     } else {
         // error handling with 404 and error handling with custom header
         res.writeHead(404, { 
